@@ -26,7 +26,7 @@ This is a React + Vite single-page web application for a trucking/delivery busin
 
 * **Profile**: Tina coordinates booth setup for trade shows. Her job is to get event materials and displays from her company’s warehouse to venues on strict delivery windows.
 * **Needs**: A clean experience with estimated delivery times, optional email confirmations, and confidence that freight won’t be mishandled.
-* **Experience**: Tina uses the quote form a week in advance, sees the rate, and submits a request for a delivery from their regional staging warehouse to the convention center. She checks the box for "Driver can move freight to rear only" and adds a comment that the venue requires a specific arrival window.
+* **Experience**: Tina uses the quote form a week in advance, sees the rate, and submits a request for a delivery from their regional staging warehouse to the convention center. She adds a comment that the venue requires a specific arrival location and time.
 
 ### Example 4: Independent Furniture Retailer - "Jorge from Carolina Rustic Living"
 
@@ -43,6 +43,11 @@ This is a React + Vite single-page web application for a trucking/delivery busin
 * Customer inputs pickup and dropoff locations.
 * System calculates route mileage using Google Maps API.
 * Cost is calculated using a manually updated market rate per mile.
+
+* Right now on 123LoadBoard Jeff views these tools to determine where he wants to bid so that he can come in a little bit under the daily load rate.  He can enter this manually here but it would be better to derive this data to the site eventually.
+  - marketRate is a tool that provides the average market rate to help compare lane rates before posting loads and better     estimate your load revenues
+  - Cargo Chief shows market rate estimates baed on the highest, middle and lowest rtes gathered from actual freight bills rather than quoted prices
+- greenscreens is a tool that shows both quotes and verified load
 
 ### 2. Google Maps Integration
 
@@ -92,6 +97,10 @@ VITE_GOOGLE_MAPS_API_KEY=your_key_here
 Use Vercel or Netlify for deployment.
 
 ---
+
+### 5. Domain registration and building
+
+We saw on GoDaddy that when finding a domain name we can actually pay for a website builder tool as well as custom email, website payments and email marketing.  Tell me more about these features on godaddy.  Will the website builder tool be better and faster than building it myself?
 
 ## Edit This File
 
