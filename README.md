@@ -41,12 +41,16 @@ This is a React + Vite single-page web application for a trucking/delivery busin
 ### 1. Dynamic Pricing Tool
 
 * Customer inputs pickup and dropoff locations.
+
 * System calculates route mileage using Google Maps API.
+
 * Cost is calculated using a manually updated market rate per mile.
 
 * Right now on 123LoadBoard Jeff views these tools to determine where he wants to bid so that he can come in a little bit under the daily load rate.  He can enter this manually here but it would be better to derive this data to the site eventually.
-  - marketRate is a tool that provides the average market rate to help compare lane rates before posting loads and better     estimate your load revenues
-  - Cargo Chief shows market rate estimates baed on the highest, middle and lowest rtes gathered from actual freight bills rather than quoted prices
+
+  * marketRate is a tool that provides the average market rate to help compare lane rates before posting loads and better     estimate your load revenues
+  * Cargo Chief shows market rate estimates baed on the highest, middle and lowest rtes gathered from actual freight bills rather than quoted prices
+
 - greenscreens is a tool that shows both quotes and verified load
 
 ### 2. Google Maps Integration
@@ -96,11 +100,52 @@ VITE_GOOGLE_MAPS_API_KEY=your_key_here
 
 Use Vercel or Netlify for deployment.
 
----
-
 ### 5. Domain registration and building
 
 We saw on GoDaddy that when finding a domain name we can actually pay for a website builder tool as well as custom email, website payments and email marketing.  Tell me more about these features on godaddy.  Will the website builder tool be better and faster than building it myself?
+
+---
+
+## Project Roadmap
+
+The steps below outline the logical build sequence for Sparky’s Logistics site:
+
+### 🔧 Phase 1: Core Infrastructure (Done / In Progress)
+
+* [x] Set up project with React + Vite + TypeScript
+* [x] Install Material UI (MUI) for consistent styling
+* [x] Set up Firebase Hosting
+* [x] Connect GitHub repo and enable CI/CD workflow
+* [x] Enable Genkit for future AI tools (optional)
+* [ ] Connect custom domain via Firebase Hosting
+
+### 🧮 Phase 2: Core Features
+
+* [ ] Build Google Maps-based quote calculator
+* [x] Create environment config for API keys
+* [ ] Add admin interface to manually update rate per mile
+* [ ] Store leads/quotes in Firestore
+* [ ] Add quote submission form with delivery notes and contact info
+
+### 📄 Phase 3: Content & Pages
+
+* [ ] Add About page (company history, values, service area)
+* [ ] Add Contact page (email form, phone, optional live chat)
+* [ ] Add footer navigation across all pages
+
+### 🔐 Phase 4: Admin Panel
+
+* [ ] Basic login or private access for Jeff
+* [ ] Rate update panel
+* [ ] Lead dashboard (view recent quote requests)
+
+### 💪 Phase 5: Testing & Deployment
+
+* [ ] Manual testing on desktop and mobile
+* [ ] Setup analytics or conversion tracking (optional)
+* [ ] Final deploy to production domain
+
+---
 
 ## Edit This File
 
