@@ -7,7 +7,7 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 // Move values to environment variables for safety
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY, // Property 'env' does not exist on type 'ImportMeta'.
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY, 
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
@@ -23,7 +23,12 @@ export const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-export { auth, provider };
+export { auth, provider, app };
 
-// Optional: initialize analytics only if supported
-export const analytics = (await isSupported()) ? getAnalytics(app) : null;
+// ✅ Wrap analytics in a function
+const setupAnalytics = async () => {
+  if (await isSupported()) {
+    getAnalytics(app);
+  }
+};
+setupAnalytics();

@@ -20,10 +20,11 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { auth } from "../utils/firebase";
+import type { UserType } from "../utils/types";
 
 interface NavbarProps {
   toggleColorMode: () => void;
-  user: any; // create a UserType.. create a utils/types.ts file
+  user: UserType | null; // create a UserType.. create a utils/types.ts file
 }
 
 const Navbar: React.FC<NavbarProps> = ({ toggleColorMode, user }) => {

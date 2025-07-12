@@ -26,7 +26,10 @@ import {
   query,
   orderBy,
   updateDoc,
+  Timestamp,
 } from "firebase/firestore";
+import HomeBaseSettings from "../components/HomeBaseSettings";
+import UserInfo from "../components/UserInfo";
 
 interface Lead {
   id: string;
@@ -38,7 +41,7 @@ interface Lead {
   notes: string;
   distance: number;
   price: number;
-  timestamp: any;
+  timestamp: Timestamp;
   contacted?: boolean;
 }
 
@@ -154,6 +157,9 @@ const AdminPage: React.FC = () => {
         <Typography variant="h4" gutterBottom>
           Admin Dashboard
         </Typography>
+        <Box>
+          <UserInfo />
+        </Box>
         <Typography variant="body1" gutterBottom>
           Update the market rate per mile:
         </Typography>
@@ -171,6 +177,9 @@ const AdminPage: React.FC = () => {
         >
           Update Rate
         </Button>
+        <Box>
+          <HomeBaseSettings />
+        </Box>
 
         <Box sx={{ mt: 6 }}>
           <Typography variant="h5" gutterBottom>

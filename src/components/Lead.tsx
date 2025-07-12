@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../utils/firebase";
-import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, getDocs, Timestamp } from "firebase/firestore";
 
 interface Lead {
   id: string;
@@ -27,7 +27,8 @@ interface Lead {
   notes: string;
   distance: number;
   price: number;
-  timestamp: any;
+  timestamp: Timestamp;
+  contacted?: boolean;
 }
 
 const AdminPage: React.FC = () => {
