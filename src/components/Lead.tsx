@@ -12,21 +12,10 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Switch,
-  FormControlLabel,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../utils/firebase";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  collection,
-  onSnapshot,
-  query,
-  orderBy,
-  updateDoc,
-} from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
 
 interface Lead {
   id: string;
@@ -39,7 +28,6 @@ interface Lead {
   distance: number;
   price: number;
   timestamp: any;
-  contacted?: boolean;
 }
 
 const AdminPage: React.FC = () => {
@@ -47,11 +35,10 @@ const AdminPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [rate, setRate] = useState("");
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [hideContacted, setHideContacted] = useState(false); // NEW
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchAdminStatusAndSubscribeToLeads = async () => {
+    const fetchAdminStatusAndLeads = async () => {
       const user = auth.currentUser;
       if (!user) {
         setIsAdmin(false);
@@ -72,29 +59,25 @@ const AdminPage: React.FC = () => {
             setRate(rateDoc.data().ratePerMile.toString());
           }
 
-          // Subscribe to leads in real time
-          const leadsQuery = query(collection(db, "leads"), orderBy("timestamp", "desc"));
-          const unsubscribe = onSnapshot(leadsQuery, (snapshot) => {
-            const leadsData: Lead[] = [];
-            snapshot.forEach((doc) =>
-              leadsData.push({ id: doc.id, ...doc.data() } as Lead)
-            );
-            setLeads(leadsData);
-          });
-
-          return unsubscribe; // Clean up listener
+          // Fetch leads
+          const leadsSnapshot = await getDocs(collection(db, "leads"));
+          const leadsData: Lead[] = [];
+          leadsSnapshot.forEach((doc) =>
+            leadsData.push({ id: doc.id, ...doc.data() } as Lead)
+          );
+          setLeads(leadsData);
         } else {
           setIsAdmin(false);
         }
       } catch (err) {
-        console.error("Error checking admin role or subscribing to leads:", err);
+        console.error("Error checking admin role or fetching data:", err);
         setIsAdmin(false);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAdminStatusAndSubscribeToLeads();
+    fetchAdminStatusAndLeads();
   }, []);
 
   const handleUpdateRate = async () => {
@@ -106,17 +89,6 @@ const AdminPage: React.FC = () => {
     } catch (error) {
       console.error("Failed to update rate:", error);
       alert("Failed to update rate.");
-    }
-  };
-
-  const markAsContacted = async (leadId: string) => {
-    try {
-      const leadRef = doc(db, "leads", leadId);
-      await updateDoc(leadRef, { contacted: true });
-      alert("Marked as contacted.");
-    } catch (error) {
-      console.error("Failed to mark lead as contacted:", error);
-      alert("Failed to update lead.");
     }
   };
 
@@ -176,16 +148,6 @@ const AdminPage: React.FC = () => {
           <Typography variant="h5" gutterBottom>
             Customer Leads
           </Typography>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={hideContacted}
-                onChange={() => setHideContacted(!hideContacted)}
-              />
-            }
-            label="Hide Contacted Leads"
-            sx={{ mb: 2 }}
-          />
           {leads.length === 0 ? (
             <Typography>No leads submitted yet.</Typography>
           ) : (
@@ -200,44 +162,22 @@ const AdminPage: React.FC = () => {
                     <TableCell>Dropoff</TableCell>
                     <TableCell>Price</TableCell>
                     <TableCell>Date</TableCell>
-                    <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {leads
-                    .filter((lead) => !hideContacted || !lead.contacted) // NEW FILTER
-                    .map((lead) => (
-                      <TableRow
-                        key={lead.id}
-                        sx={{
-                          backgroundColor: lead.contacted ? "#f0f0f0" : "inherit",
-                          opacity: lead.contacted ? 0.6 : 1,
-                        }}
-                      >
-                        <TableCell>{lead.name}</TableCell>
-                        <TableCell>{lead.email}</TableCell>
-                        <TableCell>{lead.phone}</TableCell>
-                        <TableCell>{lead.pickup}</TableCell>
-                        <TableCell>{lead.dropOff}</TableCell>
-                        <TableCell>${lead.price.toFixed(2)}</TableCell>
-                        <TableCell>
-                          {new Date(lead.timestamp.seconds * 1000).toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          {lead.contacted ? (
-                            <Typography color="success.main">Contacted</Typography>
-                          ) : (
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={() => markAsContacted(lead.id)}
-                            >
-                              Mark as Contacted
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                  {leads.map((lead) => (
+                    <TableRow key={lead.id}>
+                      <TableCell>{lead.name}</TableCell>
+                      <TableCell>{lead.email}</TableCell>
+                      <TableCell>{lead.phone}</TableCell>
+                      <TableCell>{lead.pickup}</TableCell>
+                      <TableCell>{lead.dropOff}</TableCell>
+                      <TableCell>${lead.price.toFixed(2)}</TableCell>
+                      <TableCell>
+                        {new Date(lead.timestamp.seconds * 1000).toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </TableContainer>

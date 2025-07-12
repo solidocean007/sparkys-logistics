@@ -72,6 +72,13 @@ This is a React + Vite single-page web application for a trucking/delivery busin
 * Google Maps JavaScript API
 * Optional: Firebase for lead storage and admin access
 
+### 5. Firebase Authentication
+
+* Admin access is protected using Firebase Authentication (Google Sign-In).
+* Unauthenticated users attempting to access the Admin page are redirected to a login screen.
+* Signed-in admins can update the market rate and manage customer requests.
+
+
 ---
 
 ## Setup Instructions
@@ -99,10 +106,6 @@ VITE_GOOGLE_MAPS_API_KEY=your_key_here
 ### 4. Deployment
 
 Use Vercel or Netlify for deployment.
-
-### 5. Domain registration and building
-
-We saw on GoDaddy that when finding a domain name we can actually pay for a website builder tool as well as custom email, website payments and email marketing.  Tell me more about these features on godaddy.  Will the website builder tool be better and faster than building it myself?
 
 ---
 

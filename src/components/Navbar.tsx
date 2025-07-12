@@ -19,16 +19,32 @@ import {
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import SettingsIcon from "@mui/icons-material/Settings";
+import { auth } from "../utils/firebase";
 
 interface NavbarProps {
   toggleColorMode: () => void;
+  user: any; // create a UserType.. create a utils/types.ts file
 }
 
-const Navbar: React.FC<NavbarProps> = ({ toggleColorMode }) => {
+const Navbar: React.FC<NavbarProps> = ({ toggleColorMode, user }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const handleSignOut = async () => {
+    try {
+      await auth.signOut();
+      window.location.href = "/"; // Redirect to Home
+    } catch (error) {
+      console.error("Sign out failed", error);
+    }
+  };
+
+  const menuItems = ["Home", "About", "Contact"];
+  if (user) {
+    menuItems.push("Admin");
+  }
 
   const toggleDrawer = (open: boolean) => () => {
     setDrawerOpen(open);
@@ -42,11 +58,9 @@ const Navbar: React.FC<NavbarProps> = ({ toggleColorMode }) => {
     setAnchorEl(null);
   };
 
-  const menuItems = ["Home", "About", "Contact", "Admin"];
-
   return (
     <>
-      <AppBar position="static">
+      <AppBar position="fixed" color="primary" sx={{ width: "100%" }}>
         <Toolbar>
           {isMobile && (
             <IconButton
@@ -70,7 +84,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleColorMode }) => {
                   to={text === "Home" ? "/" : `/${text.toLowerCase()}`}
                   color="inherit"
                   underline="none"
-                  sx={{ ml: 2 }}
+                  sx={{ ml: 2, fontSize: "1.1rem" }}
                 >
                   {text}
                 </Link>
@@ -88,7 +102,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleColorMode }) => {
                   <Typography variant="body1">Dark Mode</Typography>
                   <Switch onChange={toggleColorMode} />
                 </MenuItem>
-                {/* <MenuItem disabled>Language (coming soon)</MenuItem> */}
+                {user && <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>}
               </Menu>
             </>
           )}
