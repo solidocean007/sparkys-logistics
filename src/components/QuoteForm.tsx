@@ -22,6 +22,8 @@ const QuoteForm: React.FC = () => {
     distance: number;
     price: number;
   } | null>(null);
+  const [duration, setDuration] = useState<string | null>(null);
+
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -30,11 +32,11 @@ const QuoteForm: React.FC = () => {
 
   const clearPickUpInput = () => {
     setPickup("");
-  }
+  };
 
   const clearDropOffInput = () => {
     setDropOff("");
-  }
+  };
 
   const handleGetQuote = async () => {
     if (!pickup || !dropOff) return alert("Please enter both locations.");
@@ -42,13 +44,14 @@ const QuoteForm: React.FC = () => {
     try {
       const { distance, duration } = await getDistance(pickup, dropOff);
 
+      setDuration(duration);
+
       const docRef = doc(db, "settings", "rate");
       const docSnap = await getDoc(docRef);
       const ratePerMile = docSnap.exists() ? docSnap.data().ratePerMile : 3.5;
 
       setQuote({
         distance,
-        duration,
         price: distance * ratePerMile,
       });
       setShowLeadForm(true);
@@ -116,9 +119,12 @@ const QuoteForm: React.FC = () => {
       {quote && (
         <>
           <QuoteResult distance={quote.distance} price={quote.price} />
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            Estimated driving time: {quote.duration}
-          </Typography>
+          {duration && (
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              Estimated driving time: {duration}
+            </Typography>
+          )}
+
           <MapPreview pickup={pickup} dropOff={dropOff} />
         </>
       )}
