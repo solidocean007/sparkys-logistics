@@ -11,10 +11,13 @@ import NotFoundPage from "./pages/NotFoundPage";
 import { auth, db } from "./utils/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import { loadGoogleMaps } from "./utils/loadGoogleMaps";
 
 function App() {
   const [mode, setMode] = useState<"light" | "dark">("light");
   const [user, setUser] = useState<any>(null); // Track signed-in user
+
+  loadGoogleMaps();
 
   // inside useEffect
 useEffect(() => {
