@@ -1,17 +1,11 @@
 import React, { useEffect, useState } from "react";
-import {
-  Paper,
-  Typography,
-  Box,
-  CircularProgress,
-  Button,
-} from "@mui/material";
+import { Paper, Typography, Button } from "@mui/material";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../utils/firebase";
 
 const CTA: React.FC = () => {
   const [rate, setRate] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // loading isnt usd
 
   useEffect(() => {
     const fetchRate = async () => {
@@ -49,7 +43,13 @@ const CTA: React.FC = () => {
         Need It Delivered Fast?
       </Typography>
       <Typography variant="h5" gutterBottom>
-        🚚 Today’s Rate: <strong>${rate?.toFixed(2)}</strong> per mile
+        {loading ? (
+          <Typography variant="h5">Loading rate...</Typography>
+        ) : (
+          <Typography variant="h5" gutterBottom>
+            🚚 Today’s Rate: <strong>${rate?.toFixed(2)}</strong> per mile
+          </Typography>
+        )}
       </Typography>
       <Typography variant="body1" sx={{ mt: 2 }}>
         Sparky’s Logistics offers reliable and affordable delivery services. Get

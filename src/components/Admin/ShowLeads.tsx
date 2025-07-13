@@ -32,7 +32,7 @@ const ShowLeads: React.FC = () => {
         const initialLeads: LeadType[] = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        })) as Lead[];
+        })) as LeadType[];
         setLeads(initialLeads);
       } catch (error) {
         console.error("Failed to fetch leads:", error);

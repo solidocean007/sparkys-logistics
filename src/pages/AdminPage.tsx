@@ -12,21 +12,10 @@ import ShowLeads from "../components/Admin/ShowLeads";
 const AdminPage: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [rate, setRate] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
   const fetchData = async () => {
-    // ✅ Fetch rate first (public read)
-    try {
-      const rateDoc = await getDoc(doc(db, "settings", "rate"));
-      if (rateDoc.exists()) {
-        setRate(rateDoc.data().ratePerMile.toString());
-      }
-    } catch (err) {
-      console.error("Error fetching rate:", err);
-    }
-
     // ✅ Now check admin
     const user = auth.currentUser;
     if (!user) {

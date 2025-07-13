@@ -15,7 +15,7 @@ import { getDistance } from "../utils/getDistance";
 import MapPreview from "./MapPreview";
 import { loadGoogleMaps } from "../utils/loadGoogleMaps";
 import { DatePicker, TimePicker } from "@mui/x-date-pickers";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import LeadForm from "./LeadForm";
 import { useSnackbar } from "../Providers/SnackbarContext";
 import { useAvailability } from "../hooks/useAvailability";
@@ -163,23 +163,35 @@ const QuoteForm: React.FC = () => {
         🚛 Get Your Instant Quote
       </Typography>
       <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-        <DatePicker
-          label="Pickup Date"
-          value={selectedDate}
-          onChange={(newValue) => setSelectedDate(newValue)}
-          shouldDisableDate={(date) => {
-            const dateStr = date.format("YYYY-MM-DD");
-            return !availability[dateStr];
-          }}
-        />
-        <TimePicker
-          label="Pickup Time"
-          value={selectedTime}
-          onChange={(newValue) => setSelectedTime(newValue)}
-          minTime={times?.start ? dayjs(times.start, "HH:mm") : undefined}
-          maxTime={times?.end ? dayjs(times.end, "HH:mm") : undefined}
-        />
-      </Box>
+  {availabilityLoading ? (
+    // 🔄 Show skeletons while availability is loading
+    <>
+      <Skeleton variant="rounded" width="100%" height={56} />
+      <Skeleton variant="rounded" width="100%" height={56} />
+    </>
+  ) : (
+    // ✅ Show date & time pickers once availability is loaded
+    <>
+      <DatePicker
+        label="Pickup Date"
+        value={selectedDate}
+        onChange={(newValue) => setSelectedDate(newValue)}
+        shouldDisableDate={(date) => {
+          const dateStr = date.format("YYYY-MM-DD");
+          return !availability[dateStr];
+        }}
+      />
+      <TimePicker
+        label="Pickup Time"
+        value={selectedTime}
+        onChange={(newValue) => setSelectedTime(newValue)}
+        minTime={times?.start ? dayjs(times.start, "HH:mm") : undefined}
+        maxTime={times?.end ? dayjs(times.end, "HH:mm") : undefined}
+      />
+    </>
+  )}
+</Box>
+
       {/* Pickup Input */}
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
         <LocationInput
