@@ -10,6 +10,12 @@
 import {onRequest} from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 
+// 👇 Import your function
+import { notifyAdminOnNewLead } from "./notifyAdminOnNewLead";
+
+// 👇 Export it so Firebase can deploy it
+export { notifyAdminOnNewLead };
+
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
 

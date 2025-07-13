@@ -1,5 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
-import { Box, createTheme, CssBaseline, ThemeProvider } from "@mui/material";
+import {
+  Box,
+  createTheme,
+  CssBaseline,
+  ThemeProvider,
+} from "@mui/material";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import HomePage from "./pages/HomePage";
@@ -11,23 +16,21 @@ import NotFoundPage from "./pages/NotFoundPage";
 import { auth, db } from "./utils/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { loadGoogleMaps } from "./utils/loadGoogleMaps";
 import type { UserType } from "./utils/types";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { SnackbarProvider } from "./Providers/SnackbarProvider";
+import { useSnackbar } from "./Providers/SnackbarContext";
+import { setupFCM } from "./utils/setupFCM";
 
 function App() {
   const [mode, setMode] = useState<"light" | "dark">("light");
-  const [user, setUser] = useState<UserType | null>(null); // Track signed-in user
+  const [user, setUser] = useState<UserType | null>(null);
+  const showSnackbar = useSnackbar();
 
-  useEffect(() => {
-  loadGoogleMaps().catch((err) => console.error(err));
-}, []);
-
-
-  // inside useEffect
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Check if user is admin in Firestore
         const roleRef = doc(db, "roles", firebaseUser.uid);
         const roleSnap = await getDoc(roleRef);
         if (roleSnap.exists()) {
@@ -36,20 +39,26 @@ function App() {
             id: firebaseUser.uid,
             name: firebaseUser.displayName || "",
             email: firebaseUser.email || "",
-            role: roleData.role, // admin, driver, etc
+            role: roleData.role,
             createdAt: roleData.createdAt,
             updatedAt: roleData.updatedAt,
-          }); // Admin user
+          });
         } else {
-          setUser(null); // Not admin
-          alert("You are signed in but not an admin.");
+          setUser(null);
+          showSnackbar("You are signed in but not an admin.", "error");
         }
       } else {
-        setUser(null); // Not signed in
+        setUser(null);
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [showSnackbar]);
+
+  useEffect(() => {
+  if (user) {
+    setupFCM(user.id);
+  }
+}, [user]);
 
   const toggleColorMode = () => {
     setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
@@ -66,24 +75,28 @@ function App() {
   );
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <Navbar toggleColorMode={toggleColorMode} user={user} />
-        <Box sx={{ mt: 8 }}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route
-              path="/admin"
-              element={user ? <AdminPage /> : <LoginPage />}
-            />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </Box>
-      </Router>
-    </ThemeProvider>
+    <SnackbarProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router>
+          <Navbar toggleColorMode={toggleColorMode} user={user} />
+          <Box sx={{ mt: 8 }}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route
+                  path="/admin"
+                  element={user ? <AdminPage /> : <LoginPage />}
+                />
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </LocalizationProvider>
+          </Box>
+        </Router>
+      </ThemeProvider>
+    </SnackbarProvider>
   );
 }
 

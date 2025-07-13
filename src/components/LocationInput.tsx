@@ -11,17 +11,32 @@ const LocationInput: React.FC<LocationInputProps> = ({ label, value, onChange })
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!window.google || !ref.current) return;
 
+    if (!window.google) {
+      console.warn("❌ Google Maps SDK is not loaded yet");
+      return;
+    }
+    if (!ref.current) {
+      console.warn("❌ Input ref is not attached yet");
+      return;
+    }
+
+    console.log("✅ Initializing Autocomplete...");
     const autocomplete = new google.maps.places.Autocomplete(ref.current, {
       types: ["geocode"],
       componentRestrictions: { country: "us" }
     });
-    
+
+    console.log("✅ Autocomplete instance created:", autocomplete);
+
     autocomplete.addListener("place_changed", () => {
       const place = autocomplete.getPlace();
+      console.log("📍 Place selected:", place);
+
       if (place.formatted_address) {
         onChange(place.formatted_address);
+      } else {
+        console.warn("⚠ No formatted address found in selected place");
       }
     });
   }, [onChange]);
@@ -40,5 +55,4 @@ const LocationInput: React.FC<LocationInputProps> = ({ label, value, onChange })
 };
 
 export default LocationInput;
-
 

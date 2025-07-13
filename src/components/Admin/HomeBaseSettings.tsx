@@ -9,7 +9,8 @@ import {
   // Box,
 } from "@mui/material";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../utils/firebase";
+import { db } from "../../utils/firebase";
+import { useSnackbar } from "../../Providers/SnackbarContext";
 
 interface HomeBaseSettingsType {
   address: string;
@@ -29,6 +30,7 @@ const HomeBaseSettings: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const showSnackbar = useSnackbar();
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -65,14 +67,14 @@ const HomeBaseSettings: React.FC = () => {
 
           // Save to Firestore
           await updateDoc(doc(db, "settings", "homebase"), updatedSettings);
-          alert("Home base settings updated successfully!");
+          showSnackbar("Home base settings updated successfully!", "success");
         } else {
-          alert("Geocoding failed: " + status);
+          showSnackbar(`Geocoding failed" + ${status}`, "error");
         }
       });
     } catch (error) {
       console.error("Error saving home base settings:", error);
-      alert("Failed to save home base settings.");
+      showSnackbar("Failed to save home base settings.", "error");
     } finally {
       setSaving(false);
     }

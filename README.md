@@ -4,9 +4,45 @@
 
 This is a React + Vite single-page web application for a trucking/delivery business. The purpose of this site is to:
 
-* Allow customers to get dynamic delivery quotes based on distance and current market rate per mile.
-* Present the business professionally to attract more load opportunities.
-* Allow the owner to update market rates manually through a simple admin interface.
+✅ **Instant dynamic delivery quotes** based on pickup/dropoff locations, distance, and market rate per mile.  
+✅ A **professional web presence** to attract brokers, shippers, and independent customers.  
+✅ An **admin dashboard** to manage rates, enforce pickup radius, and track leads. 
+
+---
+
+## 🌟 Features
+
+### 🧮 Dynamic Pricing Tool
+- Customers input pickup and dropoff locations.
+- Route mileage is calculated using Google Maps API.
+- Delivery cost is calculated with a manually updated **rate per mile**.
+- Admin can update the rate anytime through a secure dashboard.
+
+### 📍 Google Maps Integration
+- Location autocomplete for smooth address entry.
+- Distance and estimated driving time calculation.
+- Map preview of the delivery route.
+
+### 👨‍💼 Admin Panel
+- Firebase Google Sign-In for admin access.
+- Update market rate per mile in real time.
+- Set and enforce a **home base location** with maximum pickup radius (optional).
+- View and manage customer leads:
+  - Mark leads as "Contacted".
+  - Filter out contacted leads for easier management.
+
+### 📝 Lead Submission Workflow
+1. Customer gets a quote.
+2. Enters contact details (name, email, phone, notes).
+3. Lead is saved in Firestore for admin review.
+
+### 🛠 Tech Stack
+- **Frontend**: React + Vite + TypeScript
+- **Styling**: Material UI (MUI) with light/dark mode support
+- **Maps**: Google Maps JavaScript API
+- **Backend**: Firebase Authentication & Firestore for storage
+
+---
 
 ## Example customers and their experience
 

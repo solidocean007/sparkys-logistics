@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
   Typography,
   Paper,
-  TextField,
   useTheme,
+  Skeleton,
 } from "@mui/material";
 import LocationInput from "./LocationInput";
 import QuoteResult from "./QuoteResult";
@@ -13,9 +13,17 @@ import { doc, getDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../utils/firebase";
 import { getDistance } from "../utils/getDistance";
 import MapPreview from "./MapPreview";
+import { loadGoogleMaps } from "../utils/loadGoogleMaps";
+import { DatePicker, TimePicker } from "@mui/x-date-pickers";
+import dayjs from "dayjs";
+import LeadForm from "./LeadForm";
+import { useSnackbar } from "../Providers/SnackbarContext";
+import { useAvailability } from "../hooks/useAvailability";
 
 const QuoteForm: React.FC = () => {
   const theme = useTheme();
+  const [sdkReady, setSdkReady] = useState(false);
+  const { availability, loading: availabilityLoading } = useAvailability();
   const [pickup, setPickup] = useState("");
   const [dropOff, setDropOff] = useState("");
   const [quote, setQuote] = useState<{
@@ -29,31 +37,61 @@ const QuoteForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
+  const [selectedTime, setSelectedTime] = useState<Dayjs | null>(null);
+  const showSnackbar = useSnackbar();
+
+  useEffect(() => {
+    loadGoogleMaps()
+      .then(() => {
+        console.log("✅ Google Maps SDK ready in QuoteForm");
+        setSdkReady(true);
+      })
+      .catch((err) => {
+        console.error("❌ Failed to load Google Maps SDK:", err);
+      });
+  }, []);
 
   const clearPickUpInput = () => {
     setPickup("");
+    resetForm();
   };
 
   const clearDropOffInput = () => {
     setDropOff("");
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setQuote(null);
+    setShowLeadForm(false);
+    setDuration(null);
+    setName("");
+    setEmail("");
+    setPhone("");
+    setNotes("");
   };
 
   const handleGetQuote = async () => {
-    if (!pickup || !dropOff) return alert("Please enter both locations.");
+    if (!pickup || !dropOff)
+      return showSnackbar("Please enter both locations", "error");
 
     try {
       const { distance, duration } = await getDistance(pickup, dropOff);
 
       setDuration(duration);
 
-      const docRef = doc(db, "settings", "rate");
+      const docRef = doc(db, "settings", "rate"); // Change this line
       const docSnap = await getDoc(docRef);
-      const ratePerMile = docSnap.exists() ? docSnap.data().ratePerMile : 3.5;
+      const ratePerMile = docSnap.exists()
+        ? docSnap.data().ratePerMile
+        : 3.5;
 
       setQuote({
-        distance,
+        distance: Math.round(distance), // ✅ Rounded
         price: distance * ratePerMile,
       });
+
       setShowLeadForm(true);
     } catch (error) {
       console.error("Error calculating distance:", error);
@@ -73,26 +111,50 @@ const QuoteForm: React.FC = () => {
         distance: quote?.distance,
         price: quote?.price,
         timestamp: new Date(),
+        pickupDate: selectedDate?.format("YYYY-MM-DD"),
+        pickupTime: selectedTime?.format("HH:mm"),
       });
-      alert("Your request was submitted successfully!");
-      setName("");
-      setEmail("");
-      setPhone("");
-      setNotes("");
-      setShowLeadForm(false);
+      showSnackbar("Your request was submitted successfully!", "success");
+      resetForm();
     } catch (error) {
       console.error("Error saving lead:", error);
-      alert("Failed to submit your request.");
+      showSnackbar("Failed to submit your request.", "error");
     }
   };
 
+  // ✅ Clear quote when both locations are empty
+  useEffect(() => {
+    if (!pickup && !dropOff && quote) {
+      setQuote(null);
+      setShowLeadForm(false);
+      setDuration(null);
+    }
+  }, [pickup, dropOff, quote]);
+
+  if (!sdkReady) {
+    // Show skeleton while SDK loads
+    return (
+      <Paper elevation={3} sx={{ p: 3, mt: 4, borderRadius: 2 }}>
+        <Typography variant="h5" gutterBottom>
+          🚛 Get Your Instant Quote
+        </Typography>
+        <Skeleton height={56} sx={{ my: 1 }} />
+        <Skeleton height={56} sx={{ my: 1 }} />
+        <Skeleton variant="rectangular" height={40} sx={{ mt: 2 }} />
+      </Paper>
+    );
+  }
+  const times = availability[selectedDate?.format("YYYY-MM-DD") || ""];
+
   return (
     <Paper
-      elevation={3}
+      elevation={4}
       sx={{
-        p: 3,
+        p: { xs: 2, sm: 4 },
         mt: 4,
-        borderRadius: 2,
+        borderRadius: 3,
+        maxWidth: 600,
+        mx: "auto", // center on page
         backgroundColor: theme.palette.mode === "dark" ? "#424242" : "#fafafa",
         color: theme.palette.mode === "dark" ? "#fff" : "#000",
       }}
@@ -100,21 +162,74 @@ const QuoteForm: React.FC = () => {
       <Typography variant="h5" gutterBottom>
         🚛 Get Your Instant Quote
       </Typography>
-      <LocationInput
-        label="Pickup Location"
-        value={pickup}
-        onChange={setPickup}
-      />
-      <Button onClick={clearPickUpInput}>Clear</Button>
-      <LocationInput
-        label="Dropoff Location"
-        value={dropOff}
-        onChange={setDropOff}
-      />
-      <Button onClick={clearDropOffInput}>Clear</Button>
-      <Button variant="contained" sx={{ mt: 2 }} onClick={handleGetQuote}>
-        Get Quote
-      </Button>
+      <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+        <DatePicker
+          label="Pickup Date"
+          value={selectedDate}
+          onChange={(newValue) => setSelectedDate(newValue)}
+          shouldDisableDate={(date) => {
+            const dateStr = date.format("YYYY-MM-DD");
+            return !availability[dateStr];
+          }}
+        />
+        <TimePicker
+          label="Pickup Time"
+          value={selectedTime}
+          onChange={(newValue) => setSelectedTime(newValue)}
+          minTime={times?.start ? dayjs(times.start, "HH:mm") : undefined}
+          maxTime={times?.end ? dayjs(times.end, "HH:mm") : undefined}
+        />
+      </Box>
+      {/* Pickup Input */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+        <LocationInput
+          label="Pickup Location"
+          value={pickup}
+          onChange={setPickup}
+        />
+        <Button
+          onClick={clearPickUpInput}
+          size="small"
+          color="secondary"
+          variant="outlined"
+        >
+          Clear
+        </Button>
+      </Box>
+
+      {/* Dropoff Input */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
+        <LocationInput
+          label="Dropoff Location"
+          value={dropOff}
+          onChange={setDropOff}
+        />
+        <Button
+          onClick={clearDropOffInput}
+          size="small"
+          color="secondary"
+          variant="outlined"
+        >
+          Clear
+        </Button>
+      </Box>
+
+      {/* Action Buttons */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mt: 3,
+        }}
+      >
+        <Button variant="contained" color="primary" onClick={handleGetQuote}>
+          Get Quote
+        </Button>
+        <Button variant="outlined" color="error" onClick={resetForm}>
+          Reset Form
+        </Button>
+      </Box>
 
       {quote && (
         <>
@@ -124,55 +239,22 @@ const QuoteForm: React.FC = () => {
               Estimated driving time: {duration}
             </Typography>
           )}
-
           <MapPreview pickup={pickup} dropOff={dropOff} />
         </>
       )}
 
       {showLeadForm && (
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            📥 Submit Your Request
-          </Typography>
-          <TextField
-            label="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Phone"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Notes for Driver (optional)"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            fullWidth
-            margin="normal"
-            multiline
-            rows={3}
-          />
-          <Button
-            variant="contained"
-            color="success"
-            sx={{ mt: 2 }}
-            onClick={handleSubmitLead}
-          >
-            Submit Request
-          </Button>
-        </Box>
+        <LeadForm
+          name={name}
+          email={email}
+          phone={phone}
+          notes={notes}
+          onNameChange={setName}
+          onEmailChange={setEmail}
+          onPhoneChange={setPhone}
+          onNotesChange={setNotes}
+          onSubmit={handleSubmitLead}
+        />
       )}
     </Paper>
   );

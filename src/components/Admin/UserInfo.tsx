@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Container, Typography, Box, Paper, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../utils/firebase";
+import { auth, db } from "../../utils/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
 interface UserInfo {
@@ -87,7 +87,7 @@ const UserInfo: React.FC = () => {
           </Typography>
           <Typography><strong>Name:</strong> {userInfo.name}</Typography>
           <Typography><strong>Email:</strong> {userInfo.email}</Typography>
-          <Typography><strong>UID:</strong> {userInfo.uid}</Typography>
+          {/* <Typography><strong>UID:</strong> {userInfo.uid}</Typography> */}
           <Typography><strong>Admin Role:</strong> {userInfo.admin ? "true" : "false"}</Typography>
         </Paper>
 

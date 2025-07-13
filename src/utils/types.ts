@@ -11,3 +11,17 @@ export interface UserType {
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
+
+export interface LeadType {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  pickup: string;
+  dropOff: string;
+  notes: string;
+  distance: number;
+  price: number;
+  timestamp: Timestamp;
+  contacted?: boolean;
+}

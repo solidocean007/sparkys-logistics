@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import Link from "@mui/material/Link";
-
 import {
   AppBar,
   Toolbar,
@@ -16,15 +15,17 @@ import {
   Switch,
   useTheme,
   useMediaQuery,
+  ListItemButton,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import SettingsIcon from "@mui/icons-material/Settings";
-import { auth } from "../utils/firebase";
+import { auth, provider } from "../utils/firebase";
+import { signInWithPopup } from "firebase/auth";
 import type { UserType } from "../utils/types";
 
 interface NavbarProps {
   toggleColorMode: () => void;
-  user: UserType | null; // create a UserType.. create a utils/types.ts file
+  user: UserType | null; // Ideally use UserType
 }
 
 const Navbar: React.FC<NavbarProps> = ({ toggleColorMode, user }) => {
@@ -33,10 +34,19 @@ const Navbar: React.FC<NavbarProps> = ({ toggleColorMode, user }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
+  const handleSignIn = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+      window.location.href = "/admin"; // Redirect to admin after sign in
+    } catch (error) {
+      console.error("Sign in failed", error);
+    }
+  };
+
   const handleSignOut = async () => {
     try {
       await auth.signOut();
-      window.location.href = "/"; // Redirect to Home
+      window.location.href = "/"; // Redirect to home after sign out
     } catch (error) {
       console.error("Sign out failed", error);
     }
@@ -76,6 +86,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleColorMode, user }) => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Sparky's Logistics
           </Typography>
+
           {!isMobile && (
             <>
               {menuItems.map((text) => (
@@ -103,12 +114,28 @@ const Navbar: React.FC<NavbarProps> = ({ toggleColorMode, user }) => {
                   <Typography variant="body1">Dark Mode</Typography>
                   <Switch onChange={toggleColorMode} />
                 </MenuItem>
-                {user && <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>}
+                {user ? (
+                  [
+                    <MenuItem key="hello" disabled>
+                      <Typography variant="body1">
+                        👋 Hello, {user.name || "Jeff"}!
+                      </Typography>
+                    </MenuItem>,
+                    <MenuItem key="sign-out" onClick={handleSignOut}>
+                      Sign Out
+                    </MenuItem>,
+                  ]
+                ) : (
+                  <MenuItem key="sign-in" onClick={handleSignIn}>
+                    Sign In
+                  </MenuItem>
+                )}
               </Menu>
             </>
           )}
         </Toolbar>
       </AppBar>
+
       <Drawer anchor="left" open={drawerOpen} onClose={toggleDrawer(false)}>
         <List sx={{ width: 250 }}>
           {menuItems.map((text) => (
@@ -126,6 +153,12 @@ const Navbar: React.FC<NavbarProps> = ({ toggleColorMode, user }) => {
             <ListItemText primary="Dark Mode" />
             <Switch onChange={toggleColorMode} />
           </ListItem>
+
+          {!user && (
+            <ListItemButton onClick={handleSignIn}>
+              <ListItemText primary="Sign In" />
+            </ListItemButton>
+          )}
         </List>
       </Drawer>
     </>

@@ -3,6 +3,8 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import { getMessaging } from "firebase/messaging/sw";
 
 
 // Move values to environment variables for safety
@@ -22,8 +24,16 @@ export const db = getFirestore(app);
 // Export Auth and Provider
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
-
+export const messaging = getMessaging(app);
 export { auth, provider, app };
+
+if (import.meta.env.PROD) {
+  initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider(import.meta.env.VITE_RECAPTCHA_SITE_KEY),
+    isTokenAutoRefreshEnabled: true,
+  });
+}
+
 
 // ✅ Wrap analytics in a function
 const setupAnalytics = async () => {
