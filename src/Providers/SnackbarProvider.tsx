@@ -4,14 +4,19 @@ import { SnackbarContext } from "./SnackbarContext";
 
 type SnackbarSeverity = "success" | "error";
 
-export const SnackbarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SnackbarProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success" as SnackbarSeverity,
   });
 
-  const showSnackbar = (message: string, severity: SnackbarSeverity = "success") => {
+  const showSnackbar = (
+    message: string,
+    severity: SnackbarSeverity = "success"
+  ) => {
     setSnackbar({ open: true, message, severity });
   };
 
@@ -20,8 +25,10 @@ export const SnackbarProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       {children}
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={4000}
+        autoHideDuration={5000}
         onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        sx={{ mt: 6 }} // 👈 adds margin-top
       >
         <Alert
           onClose={() => setSnackbar((s) => ({ ...s, open: false }))}

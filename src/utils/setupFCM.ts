@@ -2,8 +2,11 @@
 import { getToken } from "firebase/messaging";
 import { messaging, db } from "./firebase";
 import { doc, setDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 export async function setupFCM(userId: string) {
+  const auth = getAuth();
+  console.log("🔥 Current Firebase user:", auth.currentUser);
   try {
     const permission = await Notification.requestPermission();
     if (permission === "granted") {

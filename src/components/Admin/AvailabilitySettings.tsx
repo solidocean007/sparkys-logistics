@@ -52,21 +52,35 @@ const AvailabilitySettings: React.FC = () => {
     if (!selectedDate) return;
     const dateStr = selectedDate.format("YYYY-MM-DD");
     const timeRange = availability[dateStr];
-    if (timeRange && timeRange.start && timeRange.end) {
-      try {
-        const docRef = doc(db, "settings", "availability");
-        await setDoc(docRef, {
-          ...availability,
-          [dateStr]: {
-            start: timeRange.start.format("HH:mm"),
-            end: timeRange.end.format("HH:mm"),
+
+    // ✅ Guard: Ensure both times exist
+    if (!timeRange?.start || !timeRange?.end) {
+      showSnackbar("Start and end times are required.", "error");
+      return;
+    }
+
+    try {
+      const docRef = doc(db, "settings", "availability");
+
+      // ✅ Convert all Dayjs objects to formatted strings
+      const cleanAvailability = Object.fromEntries(
+        Object.entries(availability).map(([date, range]) => [
+          date,
+          {
+            start: range.start ? range.start.format("HH:mm") : null,
+            end: range.end ? range.end.format("HH:mm") : null,
           },
-        });
-        showSnackbar("Availability updated!");
-      } catch (err) {
-        console.error("Error saving availability:", err);
-        showSnackbar("Failed to save availability.", "error")
-      }
+        ])
+      );
+
+      console.log("Saving cleaned availability:", cleanAvailability);
+
+      await setDoc(docRef, cleanAvailability);
+
+      showSnackbar("Availability updated!", "success");
+    } catch (err) {
+      console.error("🔥 Error saving availability:", err);
+      showSnackbar("Failed to save availability.", "error");
     }
   };
 

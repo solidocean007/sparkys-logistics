@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Paper, Typography, Button } from "@mui/material";
+import { Paper, Typography, Button, Box } from "@mui/material";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../utils/firebase";
 
 const CTA: React.FC = () => {
   const [rate, setRate] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true); // loading isnt usd
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRate = async () => {
@@ -39,22 +39,46 @@ const CTA: React.FC = () => {
         mt: 4,
       }}
     >
+      {/* 👇 Logo added here */}
+      <Box sx={{ mb: 3 }}>
+        <img
+          src="/logo_with_white_circle.png" // Make sure this is in your /public folder
+          alt="Sparky's Logistics Logo"
+          style={{
+            width: "120px",
+            height: "auto",
+            borderRadius: "50%",
+          }}
+        />
+      </Box>
       <Typography variant="h3" gutterBottom sx={{ fontWeight: "bold" }}>
-        Need It Delivered Fast?
+        Expedited delivery. Veteran Owned
       </Typography>
+
       <Typography variant="h5" gutterBottom>
         {loading ? (
-          <Typography variant="h5">Loading rate...</Typography>
+          <Typography
+            variant="h6"
+            component="span"
+          >
+            Loading rate...
+          </Typography>
         ) : (
-          <Typography variant="h5" gutterBottom>
-            🚚 Today’s Rate: <strong>${rate?.toFixed(2)}</strong> per mile
+          <Typography
+            variant="h6"
+            gutterBottom
+            component="span"
+          >
+            🚚 Rates today as low as: <strong>${rate?.toFixed(2)}</strong> per mile
           </Typography>
         )}
       </Typography>
+
       <Typography variant="body1" sx={{ mt: 2 }}>
         Sparky’s Logistics offers reliable and affordable delivery services. Get
         your instant quote now!
       </Typography>
+
       <Button
         variant="contained"
         size="large"

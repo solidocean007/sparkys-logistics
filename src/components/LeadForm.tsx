@@ -1,5 +1,5 @@
-import React from "react";
-import { Box, TextField, Button, Typography } from "@mui/material";
+import React, { useEffect, useRef } from "react";
+import { Box, TextField, Button } from "@mui/material";
 
 interface LeadFormProps {
   name: string;
@@ -24,46 +24,62 @@ const LeadForm: React.FC<LeadFormProps> = ({
   onNotesChange,
   onSubmit,
 }) => {
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
+
+  // ✅ Scroll down if autofill populates all fields
+  useEffect(() => {
+    const filled =
+      name.trim() !== "" && email.trim() !== "" && phone.trim() !== "";
+
+    if (filled && submitButtonRef.current) {
+      submitButtonRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [name, email, phone]); // Watch for changes
+
   return (
     <Box sx={{ mt: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        Submit Your Request
-      </Typography>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-        <TextField
-          label="Name"
-          value={name}
-          onChange={(e) => onNameChange(e.target.value)}
-          fullWidth
-        />
-        <TextField
-          label="Email"
-          value={email}
-          onChange={(e) => onEmailChange(e.target.value)}
-          fullWidth
-        />
-        <TextField
-          label="Phone"
-          value={phone}
-          onChange={(e) => onPhoneChange(e.target.value)}
-          fullWidth
-        />
-        <TextField
-          label="Notes (Optional)"
-          value={notes}
-          onChange={(e) => onNotesChange(e.target.value)}
-          fullWidth
-          multiline
-          rows={3}
-        />
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={onSubmit}
-        >
-          Submit Request
-        </Button>
-      </Box>
+      <TextField
+        label="Name"
+        fullWidth
+        value={name}
+        onChange={(e) => onNameChange(e.target.value)}
+        sx={{ mb: 2 }}
+      />
+      <TextField
+        label="Email"
+        type="email"
+        fullWidth
+        value={email}
+        onChange={(e) => onEmailChange(e.target.value)}
+        sx={{ mb: 2 }}
+      />
+      <TextField
+        label="Phone"
+        fullWidth
+        value={phone}
+        onChange={(e) => onPhoneChange(e.target.value)}
+        sx={{ mb: 2 }}
+      />
+      <TextField
+        label="Notes"
+        multiline
+        rows={3}
+        fullWidth
+        value={notes}
+        onChange={(e) => onNotesChange(e.target.value)}
+        sx={{ mb: 2 }}
+      />
+      <Button
+        ref={submitButtonRef} // 👈 attach ref for scrolling
+        variant="contained"
+        color="primary"
+        onClick={onSubmit}
+      >
+        Submit Request
+      </Button>
     </Box>
   );
 };

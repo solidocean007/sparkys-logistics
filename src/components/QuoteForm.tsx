@@ -19,8 +19,17 @@ import dayjs, { Dayjs } from "dayjs";
 import LeadForm from "./LeadForm";
 import { useSnackbar } from "../Providers/SnackbarContext";
 import { useAvailability } from "../hooks/useAvailability";
+import { calculateRatePerMile } from "../utils/calculateRate";
 
-const QuoteForm: React.FC = () => {
+interface QuoteFormProps {
+  onQuoteSubmitted?: () => void;
+  onQuoteCompleted?: () => void;
+}
+
+const QuoteForm: React.FC<QuoteFormProps> = ({
+  onQuoteSubmitted,
+  onQuoteCompleted,
+}) => {
   const theme = useTheme();
   const [sdkReady, setSdkReady] = useState(false);
   const { availability, loading: availabilityLoading } = useAvailability();
@@ -66,38 +75,71 @@ const QuoteForm: React.FC = () => {
     setQuote(null);
     setShowLeadForm(false);
     setDuration(null);
+    setPickup("");
+    setDropOff("");
     setName("");
     setEmail("");
     setPhone("");
     setNotes("");
+
+    // ✅ Tell parent we’re done
+    if (onQuoteCompleted) onQuoteCompleted();
   };
 
-  const handleGetQuote = async () => {
-    if (!pickup || !dropOff)
-      return showSnackbar("Please enter both locations", "error");
+const handleGetQuote = async () => {
+  if (!pickup || !dropOff) {
+    showSnackbar("Please enter both locations", "error");
+    return;
+  }
 
-    try {
-      const { distance, duration } = await getDistance(pickup, dropOff);
+  try {
+    const { distance, duration } = await getDistance(pickup, dropOff);
+    setDuration(duration);
 
-      setDuration(duration);
+    // 🔥 Pull Jeff’s manually set base rate (optional fallback)
+    const docRef = doc(db, "settings", "rate");
+    const docSnap = await getDoc(docRef);
+    const fallbackRatePerMile = docSnap.exists()
+      ? docSnap.data().ratePerMile
+      : 3.5;
 
-      const docRef = doc(db, "settings", "rate"); // Change this line
-      const docSnap = await getDoc(docRef);
-      const ratePerMile = docSnap.exists()
-        ? docSnap.data().ratePerMile
-        : 3.5;
+    // 🔥 Use helper to calculate rate
+    const dieselPrice = 3.85; // TODO: replace with API fetch later
+    const calculatedRatePerMile = calculateRatePerMile({
+      dieselPricePerGallon: dieselPrice,
+      truckMpg: 8, // Jeff’s truck efficiency
+      fixedCostsPerMile: 0.75, // Truck payment, insurance
+      variableCostsPerMile: 0.5, // Maintenance, driver
+      profitMarginPercent: 20, // 20% profit margin
+    });
 
-      setQuote({
-        distance: Math.round(distance), // ✅ Rounded
-        price: distance * ratePerMile,
-      });
+    // Decide: use calculated rate or fallback
+    const finalRatePerMile = calculatedRatePerMile || fallbackRatePerMile;
 
-      setShowLeadForm(true);
-    } catch (error) {
-      console.error("Error calculating distance:", error);
-      alert("Failed to get quote.");
-    }
-  };
+    const totalPrice = distance * finalRatePerMile;
+
+    setQuote({
+      distance: Math.round(distance),
+      price: parseFloat(totalPrice.toFixed(2)),
+    });
+
+    setShowLeadForm(true);
+
+    // ✅ Notify parent that a quote has been submitted
+    if (onQuoteSubmitted) onQuoteSubmitted();
+
+    // ✅ Scroll to quote section
+    setTimeout(() => {
+      document
+        .getElementById("quote-result-section")
+        ?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  } catch (error) {
+    console.error("Error calculating distance:", error);
+    showSnackbar("Failed to get quote.", "error");
+  }
+};
+
 
   const handleSubmitLead = async () => {
     try {
@@ -115,6 +157,8 @@ const QuoteForm: React.FC = () => {
         pickupTime: selectedTime?.format("HH:mm"),
       });
       showSnackbar("Your request was submitted successfully!", "success");
+
+      // ✅ Reset form & notify parent
       resetForm();
     } catch (error) {
       console.error("Error saving lead:", error);
@@ -163,34 +207,34 @@ const QuoteForm: React.FC = () => {
         🚛 Get Your Instant Quote
       </Typography>
       <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-  {availabilityLoading ? (
-    // 🔄 Show skeletons while availability is loading
-    <>
-      <Skeleton variant="rounded" width="100%" height={56} />
-      <Skeleton variant="rounded" width="100%" height={56} />
-    </>
-  ) : (
-    // ✅ Show date & time pickers once availability is loaded
-    <>
-      <DatePicker
-        label="Pickup Date"
-        value={selectedDate}
-        onChange={(newValue) => setSelectedDate(newValue)}
-        shouldDisableDate={(date) => {
-          const dateStr = date.format("YYYY-MM-DD");
-          return !availability[dateStr];
-        }}
-      />
-      <TimePicker
-        label="Pickup Time"
-        value={selectedTime}
-        onChange={(newValue) => setSelectedTime(newValue)}
-        minTime={times?.start ? dayjs(times.start, "HH:mm") : undefined}
-        maxTime={times?.end ? dayjs(times.end, "HH:mm") : undefined}
-      />
-    </>
-  )}
-</Box>
+        {availabilityLoading ? (
+          // 🔄 Show skeletons while availability is loading
+          <>
+            <Skeleton variant="rounded" width="100%" height={56} />
+            <Skeleton variant="rounded" width="100%" height={56} />
+          </>
+        ) : (
+          // ✅ Show date & time pickers once availability is loaded
+          <>
+            <DatePicker
+              label="Pickup Date"
+              value={selectedDate}
+              onChange={(newValue) => setSelectedDate(newValue)}
+              shouldDisableDate={(date) => {
+                const dateStr = date.format("YYYY-MM-DD");
+                return !availability[dateStr];
+              }}
+            />
+            <TimePicker
+              label="Pickup Time"
+              value={selectedTime}
+              onChange={(newValue) => setSelectedTime(newValue)}
+              minTime={times?.start ? dayjs(times.start, "HH:mm") : undefined}
+              maxTime={times?.end ? dayjs(times.end, "HH:mm") : undefined}
+            />
+          </>
+        )}
+      </Box>
 
       {/* Pickup Input */}
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
@@ -244,7 +288,7 @@ const QuoteForm: React.FC = () => {
       </Box>
 
       {quote && (
-        <>
+        <div id="quote-result-section">
           <QuoteResult distance={quote.distance} price={quote.price} />
           {duration && (
             <Typography variant="body2" sx={{ mt: 1 }}>
@@ -252,7 +296,7 @@ const QuoteForm: React.FC = () => {
             </Typography>
           )}
           <MapPreview pickup={pickup} dropOff={dropOff} />
-        </>
+        </div>
       )}
 
       {showLeadForm && (

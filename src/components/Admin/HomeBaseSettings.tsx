@@ -54,24 +54,50 @@ const HomeBaseSettings: React.FC = () => {
     try {
       setSaving(true);
 
-      // Geocode the address
-      const geocoder = new window.google.maps.Geocoder();
-      geocoder.geocode({ address: settings.address }, async (results, status) => {
-        if (status === "OK" && results && results.length > 0 &&  results[0]) {
-          const location = results[0].geometry.location.toJSON();
-          const updatedSettings = {
-            ...settings,
-            lat: location.lat,
-            lng: location.lng,
-          };
+      const docRef = doc(db, "settings", "homebase");
 
-          // Save to Firestore
-          await updateDoc(doc(db, "settings", "homebase"), updatedSettings);
-          showSnackbar("Home base settings updated successfully!", "success");
-        } else {
-          showSnackbar(`Geocoding failed" + ${status}`, "error");
-        }
-      });
+      // If the address hasn't changed, skip geocoding
+      if (settings.address.trim() === "") {
+        showSnackbar("Please enter a home base address.", "error");
+        setSaving(false);
+        return;
+      }
+
+      const currentDoc = await getDoc(docRef);
+      const currentData = currentDoc.exists() ? currentDoc.data() : {};
+
+      if (currentData.address === settings.address) {
+        // 🟢 Address unchanged: update Firestore directly
+        await updateDoc(docRef, {
+          maxRadius: settings.maxRadius,
+          enforceRadius: settings.enforceRadius,
+        });
+        showSnackbar("Radius settings updated successfully!", "success");
+      } else {
+        // 🔵 Address changed: perform geocoding
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode(
+          { address: settings.address },
+          async (results, status) => {
+            if (status === "OK" && results && results[0]) {
+              const location = results[0].geometry.location.toJSON();
+              const updatedSettings = {
+                ...settings,
+                lat: location.lat,
+                lng: location.lng,
+              };
+
+              await updateDoc(docRef, updatedSettings);
+              showSnackbar(
+                "Home base and radius updated successfully!",
+                "success"
+              );
+            } else {
+              showSnackbar(`Geocoding failed: ${status}`, "error");
+            }
+          }
+        );
+      }
     } catch (error) {
       console.error("Error saving home base settings:", error);
       showSnackbar("Failed to save home base settings.", "error");
@@ -90,9 +116,7 @@ const HomeBaseSettings: React.FC = () => {
       <TextField
         label="Home Base Address"
         value={settings.address}
-        onChange={(e) =>
-          setSettings({ ...settings, address: e.target.value })
-        }
+        onChange={(e) => setSettings({ ...settings, address: e.target.value })}
         fullWidth
         margin="normal"
       />
