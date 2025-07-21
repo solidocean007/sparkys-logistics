@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import Link from "@mui/material/Link";
 import {
   AppBar,
@@ -19,9 +19,9 @@ import {
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import SettingsIcon from "@mui/icons-material/Settings";
-import { auth, provider } from "../utils/firebase";
-import { signInWithPopup } from "firebase/auth";
+import { auth } from "../utils/firebase";
 import type { UserType } from "../utils/types";
+import { GoogleAuthProvider } from "firebase/auth";
 
 interface NavbarProps {
   toggleColorMode: () => void;
@@ -29,18 +29,20 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ toggleColorMode, user }) => {
+  const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const handleSignIn = async () => {
-    try {
-      await signInWithPopup(auth, provider);
-      window.location.href = "/admin"; // Redirect to admin after sign in
-    } catch (error) {
-      console.error("Sign in failed", error);
-    }
+  // Create a GoogleAuthProvider and force account chooser
+  const googleProvider = new GoogleAuthProvider();
+  googleProvider.setCustomParameters({
+    prompt: "select_account",
+  });
+
+  const handleSignIn = () => {
+    navigate("/login");
   };
 
   const handleSignOut = async () => {
@@ -93,7 +95,11 @@ const Navbar: React.FC<NavbarProps> = ({ toggleColorMode, user }) => {
                 <Link
                   key={text}
                   component={RouterLink}
-                  to={text === "Home" ? "/" : `/${text.toLowerCase()}`}
+                  to={
+                    text.toLowerCase() === "home"
+                      ? "/"
+                      : `/${text.toLowerCase()}`
+                  }
                   color="inherit"
                   underline="none"
                   sx={{ ml: 2, fontSize: "1.1rem" }}
@@ -115,16 +121,16 @@ const Navbar: React.FC<NavbarProps> = ({ toggleColorMode, user }) => {
                   <Switch onChange={toggleColorMode} />
                 </MenuItem>
                 {user ? (
-                  [
+                  <>
                     <MenuItem key="hello" disabled>
                       <Typography variant="body1">
-                        👋 Hello, {user.name || "Jeff"}!
+                        👋 Hello, {user.name}!
                       </Typography>
-                    </MenuItem>,
+                    </MenuItem>
                     <MenuItem key="sign-out" onClick={handleSignOut}>
                       Sign Out
-                    </MenuItem>,
-                  ]
+                    </MenuItem>
+                  </>
                 ) : (
                   <MenuItem key="sign-in" onClick={handleSignIn}>
                     Sign In
@@ -142,8 +148,11 @@ const Navbar: React.FC<NavbarProps> = ({ toggleColorMode, user }) => {
             <ListItem
               key={text}
               component={RouterLink}
-              to={`/${text.toLowerCase()}`}
+              to={
+                text.toLowerCase() === "home" ? "/" : `/${text.toLowerCase()}`
+              }
               sx={{ textDecoration: "none", color: "inherit" }}
+              onClick={() => setDrawerOpen(false)} // 👈 closes the drawer
             >
               <ListItemText primary={text} />
             </ListItem>
@@ -154,8 +163,22 @@ const Navbar: React.FC<NavbarProps> = ({ toggleColorMode, user }) => {
             <Switch onChange={toggleColorMode} />
           </ListItem>
 
-          {!user && (
-            <ListItemButton onClick={handleSignIn}>
+          {user ? (
+            <>
+              <ListItem>
+                <ListItemText primary={`👋 Hello, ${user.name || "Jeff"}!`} />
+              </ListItem>
+              <ListItemButton onClick={handleSignOut}>
+                <ListItemText primary="Sign Out" />
+              </ListItemButton>
+            </>
+          ) : (
+            <ListItemButton
+              onClick={() => {
+                handleSignIn();
+                setDrawerOpen(false);
+              }}
+            >
               <ListItemText primary="Sign In" />
             </ListItemButton>
           )}

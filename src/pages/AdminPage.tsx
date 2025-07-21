@@ -1,49 +1,60 @@
 import React, { useEffect, useState } from "react";
 import { Container, Typography, Box, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../utils/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { auth } from "../utils/firebase";
 import HomeBaseSettings from "../components/Admin/HomeBaseSettings";
 import UserInfo from "../components/Admin/UserInfo";
 import AvailabilitySettings from "../components/Admin/AvailabilitySettings";
 import SetRate from "../components/Admin/SetRate";
 import ShowLeads from "../components/Admin/ShowLeads";
+import UserManagement from "../components/UserManagement";
+import AboutPageHeader from "../components/AboutPageHeader";
 
 const AdminPage: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  //   useEffect(() => {
+  //   const fetchData = async () => {
+  //     // ✅ Now check admin
+  //     const user = auth.currentUser;
+  //     if (!user) {
+  //       setIsAdmin(false);
+  //       setLoading(false);
+  //       return;
+  //     }
+
+  //     try {
+  //       const roleRef = doc(db, "roles", user.uid);
+  //       const roleSnap = await getDoc(roleRef);
+
+  //       if (roleSnap.exists() && roleSnap.data().admin === true) {
+  //         setIsAdmin(true);
+  //       } else {
+  //         setIsAdmin(false);
+  //       }
+  //     } catch (err) {
+  //       console.error("Error checking admin role:", err);
+  //       setIsAdmin(false);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, []);
+
   useEffect(() => {
-  const fetchData = async () => {
-    // ✅ Now check admin
     const user = auth.currentUser;
-    if (!user) {
+    if (user) {
+      setIsAdmin(true); // 👈 TEMPORARY BYPASS
+      setLoading(false);
+    } else {
       setIsAdmin(false);
       setLoading(false);
-      return;
     }
-
-    try {
-      const roleRef = doc(db, "roles", user.uid);
-      const roleSnap = await getDoc(roleRef);
-
-      if (roleSnap.exists() && roleSnap.data().admin === true) {
-        setIsAdmin(true);
-      } else {
-        setIsAdmin(false);
-      }
-    } catch (err) {
-      console.error("Error checking admin role:", err);
-      setIsAdmin(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchData();
-}, []);
-
+  }, []);
 
   if (loading) {
     return (
@@ -86,6 +97,13 @@ const AdminPage: React.FC = () => {
         <Box>
           <UserInfo />
         </Box>
+        <Box sx={{ mt: 6 }}>
+          <UserManagement />
+        </Box>
+        <Box>
+          <AboutPageHeader />
+        </Box>
+
         <Box>
           <AvailabilitySettings />
         </Box>

@@ -1,0 +1,42 @@
+.glass-input {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  position: relative; /* Needed for ::before */
+  background: rgba(255, 255, 255, 0.45); /* Light mode background */
+  backdrop-filter: blur(6px);
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(255, 255, 255, .9); /* 👈 soft glow instead of shadow */
+  padding: 8px;
+  overflow: hidden; /* Clip the blurred edge */
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.quote-button,
+.reset-form-button {
+  width: fit-content;
+}
+
+
+.glass-input::before {
+  content: "";
+  position: absolute;
+  inset: -4px; /* Slightly expand the blur beyond the box */
+  border-radius: inherit;
+  background: inherit;
+  filter: blur(12px); /* Stronger blur for feathering */
+  z-index: -1;
+  opacity: 0.5; /* Make the blur subtle */
+}
+
+
+html[data-theme="dark"] .glass-input {
+  background: rgba(0, 0, 0, .5); /* Dark mode background */
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
+}
+
+.glass-input input {
+  background: transparent; /* Remove internal white background */
+  color: inherit;
+}
+
