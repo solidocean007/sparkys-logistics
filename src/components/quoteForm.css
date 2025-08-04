@@ -4,9 +4,9 @@
   width: 100%;
   position: relative; /* Needed for ::before */
   background: rgba(255, 255, 255, 0.45); /* Light mode background */
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(2px);
   border-radius: 10px;
-  box-shadow: 0 0 20px rgba(255, 255, 255, .9); /* 👈 soft glow instead of shadow */
+ box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* 👈 soft glow instead of shadow */
   padding: 8px;
   overflow: hidden; /* Clip the blurred edge */
   transition: background 0.3s ease, box-shadow 0.3s ease;

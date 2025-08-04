@@ -52,7 +52,7 @@ const HomePage: React.FC = () => {
       >
         {!quoteActive && <CTA />}
       </Box>
-      <Box sx={{ mt: 4, width: "100%", maxWidth: "600px" }}>
+      <Box id="get-quote" sx={{ mt: 4, width: "100%", maxWidth: "600px" }}>
         <QuoteForm
           onQuoteSubmitted={handleQuoteStart}
           onQuoteCompleted={handleQuoteFinished}

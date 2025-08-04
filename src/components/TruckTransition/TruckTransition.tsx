@@ -1,18 +1,18 @@
 import React, { useState } from "react";
-import { Box, Typography, Slider, Paper, useTheme } from "@mui/material";
+import { Box, Typography, Slider, Paper, useTheme, Button } from "@mui/material";
 import "./truckTransition.css";
+import { useNavigate } from "react-router-dom";
 
 interface TruckTransitionProps {
   photoSrc: string;
   blueprintSrc: string;
-  specs?: string[];
 }
 
 const TruckTransition: React.FC<TruckTransitionProps> = ({
   photoSrc,
   blueprintSrc,
-  specs = [],
 }) => {
+  const navigate = useNavigate();
   const [sliderValue, setSliderValue] = useState(100); // Start with slider to the right
   const theme = useTheme();
 
@@ -125,13 +125,21 @@ const TruckTransition: React.FC<TruckTransitionProps> = ({
           elevation={3}
         >
           <Typography variant="h6" gutterBottom>
-            Truck Specs
+            {sliderValue > 66
+              ? "Veteran-Owned. Mission-Focused."
+              : sliderValue > 33
+              ? "Fast, dependable, box truck delivery."
+              : "We deliver with integrity. Get a quote today."}
           </Typography>
-          {specs.map((spec, index) => (
-            <Typography key={index} variant="body2">
-              {spec}
-            </Typography>
-          ))}
+
+          <Button
+            variant="contained"
+            size="small"
+            sx={{ mt: 2 }}
+             onClick={() => navigate("/#get-quote")}
+          >
+            Get a Quote
+          </Button>
         </Paper>
       </Box>
     </Box>
